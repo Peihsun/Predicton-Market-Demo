@@ -47,35 +47,43 @@ contract Casino{
     
     struct Option{
         uint optionReward; 
-        mapping (address => uint) betInfo;
+        mapping (address => uint256) betInfo;
     }
     
     Token token;
     address public tokenAddress;
-    uint public bettingTime;
+    address public casinoOwnerAdderss;
+    uint256 public bettingTime;
     bool public winnerRevealed;
     
-    uint public totalReward;
+    uint256 public totalReward;
     Option[2] options;
     
-    uint public winner;
+    uint256 public winner;
     
-    event WinnerIs(uint _winner);
-    event BetSuccess(address _player, uint _option, uint _value);
-    event GetReward(address _player, uint _reward);
+    event WinnerIs(uint256 _winner);
+    event BetSuccess(address _player, uint256 _option, uint256 _value);
+    event GetReward(address _player, uint256 _reward);
     
     
-    constructor(uint _bettingTimeInMinutes) public {
+    modifier onlyBy(address _owner){
+        require(msg.sender == _owner);
+        _;
+    }
+
+    // Stage 0: Create
+    // Initialize
+    constructor(uint256 _bettingTimeInMinutes) public {
+        casinoOwnerAdderss = msg.sender;
         bettingTime = now + _bettingTimeInMinutes * 1 minutes;
-        
-        tokenAddress = new Token(msg.sender);
-        token = Token(tokenAddress);
-        
         winnerRevealed = false;
-        
+
+        tokenAddress = new Token(msg.sender);
+        token = Token(tokenAddress);    
     }
     
-    function bet(uint _option, uint _value) public returns (bool){
+    // Stage 1: Betting
+    function bet(uint256 _option, uint256 _value) public returns (bool){
         require(now <= bettingTime);
         require(_option < options.length);
         require(token.transferByCasino(msg.sender, this, _value));
@@ -88,35 +96,43 @@ contract Casino{
         return true;
     }
     
+    // Stage 2: Getting Result
     function revealWinner() public {
         require(now > bettingTime);
         require(!winnerRevealed);
         winner = uint(keccak256(abi.encodePacked(block.timestamp))) % 2;
         winnerRevealed = true;
-        
+
         emit WinnerIs(winner);
     }
     
+    // Stage 3: Claim the reward
     function claimReward() public returns (bool){
         require(winnerRevealed);
+        assert(winner < options.length);
         require(options[winner].betInfo[msg.sender] != 0);
         
         uint reward = totalReward * options[winner].betInfo[msg.sender] / options[winner].optionReward;
         options[winner].betInfo[msg.sender] = 0;
         require(token.transfer(msg.sender, reward));
-        emit GetReward(msg.sender, reward);
         
+        emit GetReward(msg.sender, reward);
         return true;
     } 
     
-    // helper funtion
-	function showWinner() view public returns(string){
-		if(!winnerRevealed) return "Waiting for a winner";
-		else{
-        	assert(winner == 0 || winner == 1);
-        	
-        	if(winner == 0) return "The winner is number 0.";
-        	else if(winner == 1) return "The winner is number 1.";
-		}
-	}
+    // Owner function
+    function setBettingTime(uint256 _newBettingTimeInSecond) public onlyBy(casinoOwnerAdderss){
+        bettingTime = _newBettingTimeInSecond;
+    }
+
+    // Helper function
+    function showWinner() view public returns(string){
+        if(!winnerRevealed) return "Waiting for a winner";
+        else{
+            assert(winner == 0 || winner == 1);
+            
+            if(winner == 0) return "The winner is number 0.";
+            else if(winner == 1) return "The winner is number 1.";
+        }
+    }
 }
