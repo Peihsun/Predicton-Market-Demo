@@ -114,7 +114,7 @@ contract Casino{
     
     struct Option{
         uint optionReward; 
-        mapping (address => uint256) betInfo;
+        mapping (address => uint256) playerBetInfo;
     }
     
     Token token;
@@ -155,7 +155,7 @@ contract Casino{
         require(_option < options.length);
         require(token.transferByCasino(msg.sender, this, _value));
         
-        options[_option].betInfo[msg.sender] = options[_option].betInfo[msg.sender].add(_value);
+        options[_option].playerBetInfo[msg.sender] = options[_option].playerBetInfo[msg.sender].add(_value);
         options[_option].optionReward = options[_option].optionReward.add(_value);
         totalReward = totalReward.add(_value);
         
@@ -177,10 +177,10 @@ contract Casino{
     function claimReward() public returns (bool){
         require(winnerRevealed);
         assert(winner < options.length);
-        require(options[winner].betInfo[msg.sender] != 0);
+        require(options[winner].playerBetInfo[msg.sender] != 0);
         
-        uint reward = totalReward.mul(options[winner].betInfo[msg.sender].div(options[winner].optionReward));
-        options[winner].betInfo[msg.sender] = 0;
+        uint reward = totalReward.mul(options[winner].playerBetInfo[msg.sender].div(options[winner].optionReward));
+        options[winner].playerBetInfo[msg.sender] = 0;
         require(token.transfer(msg.sender, reward));
         
         emit GetReward(msg.sender, reward);

@@ -4,7 +4,7 @@ contract Casino{
 
 	struct Option{
         uint optionReward; 
-        mapping (address => uint256) betInfo;
+        mapping (address => uint256) playerBetInfo;
     }
 
 	Option[2] public options;
@@ -36,7 +36,7 @@ contract Casino{
 		require(now <= bettingTime);
 		require(_option < options.length);
 		
-		options[_option].betInfo[msg.sender] += msg.value;
+		options[_option].playerBetInfo[msg.sender] += msg.value;
 		options[_option].optionReward += msg.value;
 		totalReward += msg.value;
 
@@ -58,10 +58,10 @@ contract Casino{
 	function claimReward() public returns (bool){
 		require(winnerRevealed);
 		assert(winner < options.length);
-		require(options[winner].betInfo[msg.sender] != 0);
+		require(options[winner].playerBetInfo[msg.sender] != 0);
 
-		uint reward = totalReward * options[winner].betInfo[msg.sender] / options[winner].optionReward;
-		options[winner].betInfo[msg.sender] = 0;
+		uint reward = totalReward * options[winner].playerBetInfo[msg.sender] / options[winner].optionReward;
+		options[winner].playerBetInfo[msg.sender] = 0;
 		
 		require(msg.sender.send(reward));
 		emit GetReward(msg.sender, reward);
@@ -83,4 +83,5 @@ contract Casino{
         	else if(winner == 1) return "The winner is number 1.";
 		}
 	} 
+
 }
