@@ -86,10 +86,17 @@ contract Casino{
 	function showWinner() view public returns(string){
 		if(!winnerRevealed) return "Waiting for a winner";
 		else{
-        	assert(winner == 0 || winner == 1);
+        	require(winner == 0 || winner == 1);
         	
         	if(winner == 0) return "The winner is number 0.";
         	else if(winner == 1) return "The winner is number 1.";
 		}
 	} 
+	
+	function showBetInfo(uint256 _option, uint256 _index) view public returns(address _address, uint256 _amount){
+	    if(options[_option].betInfo.length > 0){
+	        _address = options[_option].betInfo[_index].betAddress;
+	        _amount = options[_option].betInfo[_index].amount;
+	    }
+	}
 }

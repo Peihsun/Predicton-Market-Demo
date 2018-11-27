@@ -129,7 +129,7 @@ contract Casino{
     function showWinner() view public returns(string){
         if(!winnerRevealed) return "Waiting for a winner";
         else{
-            assert(winner == 0 || winner == 1);
+            require(winner == 0 || winner == 1);
             
             if(winner == 0) return "The winner is number 0.";
             else if(winner == 1) return "The winner is number 1.";
