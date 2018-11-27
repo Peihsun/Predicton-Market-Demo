@@ -83,5 +83,8 @@ contract Casino{
         	else if(winner == 1) return "The winner is number 1.";
 		}
 	} 
-
+	
+	function showPlayerBetInfo(uint256 _option, address _address) view public returns(uint256 _amount){
+	    _amount = options[_option].playerBetInfo[_address];
+	}
 }
